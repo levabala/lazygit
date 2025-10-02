@@ -781,6 +781,8 @@ type TranslationSet struct {
 	SortOrderPrompt                          string
 	SortCommits                              string
 	SortCommitsTooltip                       string
+	CollapseMergeCommits                     string
+	CollapseMergeCommitsTooltip              string
 	CantChangeContextSizeError               string
 	OpenCommitInBrowser                      string
 	ViewBisectOptions                        string
@@ -1861,6 +1863,8 @@ func EnglishTranslationSet() *TranslationSet {
 		SortBasedOnReflog:                        "(based on reflog)",
 		SortCommits:                              "Commit sort order",
 		SortCommitsTooltip:                       "Change the sort order of the commits in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.sortOrder'.",
+		CollapseMergeCommits:                     "Collapse merge commits",
+		CollapseMergeCommitsTooltip:              "Show or hide commits that were merged in when displaying merge commits. When collapsed, only the merge commit itself is shown. When expanded (default), all commits from merged branches are shown.\n\nThe default can be changed in the config file with the key 'git.log.collapseMergeCommits'.",
 		CantChangeContextSizeError:               "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		OpenCommitInBrowser:                      "Open commit in browser",
 		ViewBisectOptions:                        "View bisect options",

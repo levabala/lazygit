@@ -588,6 +588,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		Arg(refSpec).
 		ArgIf(gitLogOrder != "default", "--"+gitLogOrder).
 		ArgIf(opts.All, "--all").
+		ArgIf(self.UserConfig().Git.Log.CollapseMergeCommits, "--first-parent").
 		Arg("--oneline").
 		Arg(prettyFormat).
 		Arg("--abbrev=40").

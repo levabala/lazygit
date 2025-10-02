@@ -1255,6 +1255,23 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 					})
 				},
 			},
+			{
+				Label:   self.c.Tr.CollapseMergeCommits,
+				Tooltip: self.c.Tr.CollapseMergeCommitsTooltip,
+				OnPress: func() error {
+					self.c.UserConfig().Git.Log.CollapseMergeCommits = !self.c.UserConfig().Git.Log.CollapseMergeCommits
+					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
+						self.c.Refresh(
+							types.RefreshOptions{
+								Mode:  types.SYNC,
+								Scope: []types.RefreshableView{types.COMMITS},
+							},
+						)
+						return nil
+					})
+				},
+				Widget: types.MakeMenuCheckBox(self.c.UserConfig().Git.Log.CollapseMergeCommits),
+			},
 		},
 	})
 }
