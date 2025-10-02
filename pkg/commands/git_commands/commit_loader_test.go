@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -29,13 +30,15 @@ var singleCommitOutput = strings.ReplaceAll(`+0eea75e8c631fba6b58135697835d58ba4
 
 func TestGetCommits(t *testing.T) {
 	type scenario struct {
-		testName           string
-		runner             *oscommands.FakeCmdObjRunner
-		expectedCommitOpts []models.NewCommitOpts
-		expectedError      error
-		logOrder           string
-		opts               GetCommitsOptions
-		mainBranches       []string
+		testName             string
+		runner               *oscommands.FakeCmdObjRunner
+		expectedCommitOpts   []models.NewCommitOpts
+		expectedError        error
+		logOrder             string
+		opts                 GetCommitsOptions
+		mainBranches         []string
+		collapseMergeCommits bool
+		hideMergeCommits     bool
 	}
 
 	scenarios := []scenario{
@@ -294,12 +297,53 @@ func TestGetCommits(t *testing.T) {
 			expectedCommitOpts: []models.NewCommitOpts{},
 			expectedError:      nil,
 		},
+		{
+			testName:             "should include --first-parent when CollapseMergeCommits is enabled",
+			logOrder:             "default",
+			opts:                 GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
+			collapseMergeCommits: true,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
+				ExpectFunc("log with --first-parent", func(cmdObj *oscommands.CmdObj) bool {
+					args := cmdObj.GetCmd().Args[1:]
+					return lo.Contains(args, "log") && lo.Contains(args, "--first-parent")
+				}, "", nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
+		},
+		{
+			testName:         "should include --first-parent and --no-merges when HideMergeCommits is enabled",
+			logOrder:         "default",
+			opts:             GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
+			hideMergeCommits: true,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
+				ExpectFunc("log with --first-parent and --no-merges", func(cmdObj *oscommands.CmdObj) bool {
+					args := cmdObj.GetCmd().Args[1:]
+					return lo.Contains(args, "log") && lo.Contains(args, "--first-parent") && lo.Contains(args, "--no-merges")
+				}, "", nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
+		},
 	}
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
-			common := common.NewDummyCommon()
-			common.UserConfig().Git.Log.Order = scenario.logOrder
+			userConfig := config.GetDefaultConfig()
+			userConfig.Git.Log.Order = scenario.logOrder
+			userConfig.Git.MainBranches = scenario.mainBranches
+
+			appState := &config.AppState{}
+			if scenario.collapseMergeCommits {
+				appState.CollapseMergeCommits = &scenario.collapseMergeCommits
+			}
+			if scenario.hideMergeCommits {
+				appState.HideMergeCommits = &scenario.hideMergeCommits
+			}
+
+			common := common.NewDummyCommonWithUserConfigAndAppState(userConfig, appState)
 			cmd := oscommands.NewDummyCmdObjBuilder(scenario.runner)
 
 			builder := &CommitLoader{
@@ -316,8 +360,6 @@ func TestGetCommits(t *testing.T) {
 			}
 
 			hashPool := &utils.StringPool{}
-
-			common.UserConfig().Git.MainBranches = scenario.mainBranches
 			opts := scenario.opts
 			opts.MainBranches = NewMainBranches(common, cmd)
 			opts.HashPool = hashPool
