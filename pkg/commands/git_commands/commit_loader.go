@@ -15,6 +15,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -588,7 +589,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		Arg(refSpec).
 		ArgIf(gitLogOrder != "default", "--"+gitLogOrder).
 		ArgIf(opts.All, "--all").
-		ArgIf(self.UserConfig().Git.Log.CollapseMergeCommits, "--first-parent").
+		ArgIf(config.GetCollapseMergeCommits(self.UserConfig(), self.AppState), "--first-parent").
 		Arg("--oneline").
 		Arg(prettyFormat).
 		Arg("--abbrev=40").

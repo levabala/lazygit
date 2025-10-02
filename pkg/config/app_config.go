@@ -50,6 +50,7 @@ type AppConfigurer interface {
 
 	GetAppState() *AppState
 	SaveAppState() error
+	GetCollapseMergeCommits() bool
 }
 
 type ConfigFilePolicy int
@@ -666,11 +667,27 @@ type AppState struct {
 	// For backwards compatibility we keep the old name in yaml files.
 	ShellCommandsHistory []string `yaml:"customcommandshistory"`
 
-	HideCommandLog bool
+	HideCommandLog       bool
+	CollapseMergeCommits *bool
 }
 
 func getDefaultAppState() *AppState {
 	return &AppState{}
+}
+
+// GetCollapseMergeCommits returns the effective value of CollapseMergeCommits:
+// if it's been set in AppState (runtime), use that; otherwise fall back to UserConfig default
+func (c *AppConfig) GetCollapseMergeCommits() bool {
+	return GetCollapseMergeCommits(c.userConfig, c.appState)
+}
+
+// GetCollapseMergeCommits returns the effective value of CollapseMergeCommits:
+// if it's been set in AppState (runtime), use that; otherwise fall back to UserConfig default
+func GetCollapseMergeCommits(userConfig *UserConfig, appState *AppState) bool {
+	if appState.CollapseMergeCommits != nil {
+		return *appState.CollapseMergeCommits
+	}
+	return userConfig.Git.Log.CollapseMergeCommits
 }
 
 func LogPath() (string, error) {

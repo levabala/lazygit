@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
@@ -1175,6 +1176,12 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				Label:     self.c.Tr.ShowGitGraph,
 				Tooltip:   self.c.Tr.ShowGitGraphTooltip,
 				OpensMenu: true,
+				DisabledReason: func() *types.DisabledReason {
+					if config.GetCollapseMergeCommits(self.c.UserConfig(), self.c.GetAppState()) {
+						return &types.DisabledReason{Text: "Git graph is disabled when merge commits are collapsed"}
+					}
+					return nil
+				}(),
 				OnPress: func() error {
 					currentValue := self.c.UserConfig().Git.Log.ShowGraph
 					onPress := func(value string) func() error {
@@ -1259,7 +1266,9 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				Label:   self.c.Tr.CollapseMergeCommits,
 				Tooltip: self.c.Tr.CollapseMergeCommitsTooltip,
 				OnPress: func() error {
-					self.c.UserConfig().Git.Log.CollapseMergeCommits = !self.c.UserConfig().Git.Log.CollapseMergeCommits
+					newValue := !config.GetCollapseMergeCommits(self.c.UserConfig(), self.c.GetAppState())
+					self.c.GetAppState().CollapseMergeCommits = &newValue
+					self.c.SaveAppStateAndLogError()
 					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
 						self.c.Refresh(
 							types.RefreshOptions{
@@ -1270,7 +1279,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						return nil
 					})
 				},
-				Widget: types.MakeMenuCheckBox(self.c.UserConfig().Git.Log.CollapseMergeCommits),
+				Widget: types.MakeMenuCheckBox(config.GetCollapseMergeCommits(self.c.UserConfig(), self.c.GetAppState())),
 			},
 		},
 	})

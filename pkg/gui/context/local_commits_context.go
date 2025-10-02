@@ -8,6 +8,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -248,6 +249,11 @@ func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 
 func shouldShowGraph(c *ContextCommon) bool {
 	if c.Modes().Filtering.Active() {
+		return false
+	}
+
+	// Force graph to never when merge commits are collapsed
+	if config.GetCollapseMergeCommits(c.UserConfig(), c.AppState) {
 		return false
 	}
 
