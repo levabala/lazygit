@@ -50,7 +50,6 @@ type AppConfigurer interface {
 
 	GetAppState() *AppState
 	SaveAppState() error
-	GetCollapseMergeCommits() bool
 }
 
 type ConfigFilePolicy int
@@ -674,12 +673,6 @@ type AppState struct {
 
 func getDefaultAppState() *AppState {
 	return &AppState{}
-}
-
-// GetCollapseMergeCommits returns the effective value of CollapseMergeCommits:
-// if it's been set in AppState (runtime), use that; otherwise fall back to UserConfig default
-func (c *AppConfig) GetCollapseMergeCommits() bool {
-	return GetCollapseMergeCommits(c.userConfig, c.appState)
 }
 
 // GetCollapseMergeCommits returns the effective value of CollapseMergeCommits:
