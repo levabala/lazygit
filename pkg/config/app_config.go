@@ -669,6 +669,7 @@ type AppState struct {
 
 	HideCommandLog       bool
 	CollapseMergeCommits *bool
+	HideMergeCommits     *bool
 }
 
 func getDefaultAppState() *AppState {
@@ -688,6 +689,15 @@ func GetCollapseMergeCommits(userConfig *UserConfig, appState *AppState) bool {
 		return *appState.CollapseMergeCommits
 	}
 	return userConfig.Git.Log.CollapseMergeCommits
+}
+
+// GetHideMergeCommits returns the effective value of HideMergeCommits:
+// if it's been set in AppState (runtime), use that; otherwise fall back to UserConfig default
+func GetHideMergeCommits(userConfig *UserConfig, appState *AppState) bool {
+	if appState.HideMergeCommits != nil {
+		return *appState.HideMergeCommits
+	}
+	return userConfig.Git.Log.HideMergeCommits
 }
 
 func LogPath() (string, error) {

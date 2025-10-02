@@ -257,6 +257,11 @@ func shouldShowGraph(c *ContextCommon) bool {
 		return false
 	}
 
+	// Force graph to never when merge commits are hidden
+	if config.GetHideMergeCommits(c.UserConfig(), c.AppState) {
+		return false
+	}
+
 	value := c.UserConfig().Git.Log.ShowGraph
 
 	switch value {

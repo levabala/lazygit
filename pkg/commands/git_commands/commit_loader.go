@@ -585,11 +585,15 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		refSpec += "..." + opts.RefToShowDivergenceFrom
 	}
 
+	hideMergeCommits := config.GetHideMergeCommits(self.UserConfig(), self.AppState)
+	collapseMergeCommits := config.GetCollapseMergeCommits(self.UserConfig(), self.AppState)
+
 	cmdArgs := NewGitCmd("log").
 		Arg(refSpec).
 		ArgIf(gitLogOrder != "default", "--"+gitLogOrder).
 		ArgIf(opts.All, "--all").
-		ArgIf(config.GetCollapseMergeCommits(self.UserConfig(), self.AppState), "--first-parent").
+		ArgIf(collapseMergeCommits || hideMergeCommits, "--first-parent").
+		ArgIf(hideMergeCommits, "--no-merges").
 		Arg("--oneline").
 		Arg(prettyFormat).
 		Arg("--abbrev=40").

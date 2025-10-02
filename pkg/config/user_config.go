@@ -360,6 +360,11 @@ type LogConfig struct {
 	//
 	// Can be toggled from within lazygit with `Log menu -> Collapse merge commits` (`<c-l>` in the commits window by default).
 	CollapseMergeCommits bool `yaml:"collapseMergeCommits"`
+	// If true, hide all merge commits and their internal commits entirely from the commits view.
+	// When enabled, this option disables the CollapseMergeCommits option.
+	//
+	// Can be toggled from within lazygit with `Log menu -> Hide merge commits` (`<c-l>` in the commits window by default).
+	HideMergeCommits bool `yaml:"hideMergeCommits"`
 }
 
 type CommitPrefixConfig struct {
@@ -821,6 +826,7 @@ func GetDefaultConfig() *UserConfig {
 				ShowGraph:            "always",
 				ShowWholeGraph:       false,
 				CollapseMergeCommits: false,
+				HideMergeCommits:     false,
 			},
 			LocalBranchSortOrder:         "date",
 			RemoteBranchSortOrder:        "date",

@@ -1180,6 +1180,9 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 					if config.GetCollapseMergeCommits(self.c.UserConfig(), self.c.GetAppState()) {
 						return &types.DisabledReason{Text: "Git graph is disabled when merge commits are collapsed"}
 					}
+					if config.GetHideMergeCommits(self.c.UserConfig(), self.c.GetAppState()) {
+						return &types.DisabledReason{Text: "Git graph is disabled when merge commits are hidden"}
+					}
 					return nil
 				}(),
 				OnPress: func() error {
@@ -1265,6 +1268,12 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 			{
 				Label:   self.c.Tr.CollapseMergeCommits,
 				Tooltip: self.c.Tr.CollapseMergeCommitsTooltip,
+				DisabledReason: func() *types.DisabledReason {
+					if config.GetHideMergeCommits(self.c.UserConfig(), self.c.GetAppState()) {
+						return &types.DisabledReason{Text: "Collapse merge commits is disabled when merge commits are hidden"}
+					}
+					return nil
+				}(),
 				OnPress: func() error {
 					newValue := !config.GetCollapseMergeCommits(self.c.UserConfig(), self.c.GetAppState())
 					self.c.GetAppState().CollapseMergeCommits = &newValue
@@ -1280,6 +1289,25 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 					})
 				},
 				Widget: types.MakeMenuCheckBox(config.GetCollapseMergeCommits(self.c.UserConfig(), self.c.GetAppState())),
+			},
+			{
+				Label:   self.c.Tr.HideMergeCommits,
+				Tooltip: self.c.Tr.HideMergeCommitsTooltip,
+				OnPress: func() error {
+					newValue := !config.GetHideMergeCommits(self.c.UserConfig(), self.c.GetAppState())
+					self.c.GetAppState().HideMergeCommits = &newValue
+					self.c.SaveAppStateAndLogError()
+					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
+						self.c.Refresh(
+							types.RefreshOptions{
+								Mode:  types.SYNC,
+								Scope: []types.RefreshableView{types.COMMITS},
+							},
+						)
+						return nil
+					})
+				},
+				Widget: types.MakeMenuCheckBox(config.GetHideMergeCommits(self.c.UserConfig(), self.c.GetAppState())),
 			},
 		},
 	})
